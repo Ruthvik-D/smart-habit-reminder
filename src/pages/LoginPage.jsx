@@ -1,19 +1,19 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import AuthLayout from '../layouts/AuthLayout'
 import Alert from '../components/common/Alert'
 import FormField from '../components/common/FormField'
 import { signIn } from '../services/authService'
+import { setPendingEmail } from '../utils/verification'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function LoginPage() {
-  const location = useLocation()
   const [form, setForm] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
   const [formError, setFormError] = useState('')
+  const [unverifiedEmail, setUnverifiedEmail] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const notice = location.state?.message
 
   const updateField = (field) => (event) => {
     setForm((current) => ({ ...current, [field]: event.target.value }))
@@ -26,13 +26,20 @@ export default function LoginPage() {
     if (!form.password) nextErrors.password = 'Please enter your password.'
     setErrors(nextErrors)
     setFormError('')
+    setUnverifiedEmail('')
     if (Object.keys(nextErrors).length > 0) return
 
+    const email = form.email.trim()
     setSubmitting(true)
     try {
-      await signIn({ email: form.email.trim(), password: form.password })
+      await signIn({ email, password: form.password })
     } catch (err) {
-      setFormError(err.message)
+      if (err.code === 'email_not_confirmed') {
+        setPendingEmail(email)
+        setUnverifiedEmail(email)
+      } else {
+        setFormError(err.message)
+      }
       setSubmitting(false)
     }
   }
@@ -50,9 +57,18 @@ export default function LoginPage() {
         </>
       }
     >
-      {notice && (
+      {unverifiedEmail && (
         <div className="mb-5">
-          <Alert tone="success">{notice}</Alert>
+          <Alert tone="info">
+            Please verify your email before signing in. Check your inbox and spam folder for the link.{' '}
+            <Link
+              to="/verify-email"
+              state={{ email: unverifiedEmail }}
+              className="font-medium underline underline-offset-2"
+            >
+              Resend verification email
+            </Link>
+          </Alert>
         </div>
       )}
       {formError && (

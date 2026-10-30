@@ -4,6 +4,7 @@ import AuthLayout from '../layouts/AuthLayout'
 import Alert from '../components/common/Alert'
 import FormField from '../components/common/FormField'
 import { signUp } from '../services/authService'
+import { setPendingEmail } from '../utils/verification'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MIN_PASSWORD_LENGTH = 6
@@ -45,10 +46,9 @@ export default function RegisterPage() {
         displayName: form.displayName.trim(),
       })
       if (!data.session) {
-        navigate('/login', {
-          replace: true,
-          state: { message: 'Your account is ready. Sign in to continue.' },
-        })
+        const email = form.email.trim()
+        setPendingEmail(email)
+        navigate('/verify-email', { replace: true, state: { email } })
       }
     } catch (err) {
       setFormError(err.message)

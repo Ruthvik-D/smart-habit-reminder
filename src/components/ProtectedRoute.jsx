@@ -10,6 +10,9 @@ export default function ProtectedRoute() {
 
   if (loading) return <LoadingState fullScreen label="Loading your workspace..." />
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  if (!user.email_confirmed_at) {
+    return <Navigate to="/verify-email" replace state={{ email: user.email }} />
+  }
 
   return (
     <HabitDataProvider>

@@ -8,6 +8,7 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const userId = session?.user?.id ?? null
+  const awaitingConfirmation = Boolean(session?.user) && !session.user.email_confirmed_at
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
@@ -16,6 +17,18 @@ export function AuthProvider({ children }) {
     })
     return () => data.subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    if (!awaitingConfirmation) return undefined
+    const recheckConfirmation = async () => {
+      const { data, error } = await supabase.auth.getUser()
+      if (error || !data.user?.email_confirmed_at) return
+      await supabase.auth.refreshSession()
+    }
+    recheckConfirmation()
+    window.addEventListener('focus', recheckConfirmation)
+    return () => window.removeEventListener('focus', recheckConfirmation)
+  }, [awaitingConfirmation])
 
   useEffect(() => {
     if (!userId) return undefined

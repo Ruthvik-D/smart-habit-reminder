@@ -4,6 +4,8 @@ import ProtectedRoute from './components/ProtectedRoute'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import VerifyEmailPage from './pages/VerifyEmailPage'
+import AuthCallbackPage from './pages/AuthCallbackPage'
 import DashboardPage from './pages/DashboardPage'
 import HabitsPage from './pages/HabitsPage'
 import HabitEditorPage from './pages/HabitEditorPage'
@@ -17,6 +19,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
       <Route element={<GuestRoute />}>
         <Route path="/login" element={<LoginPage />} />
